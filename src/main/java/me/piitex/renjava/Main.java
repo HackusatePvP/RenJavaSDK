@@ -24,6 +24,7 @@ public class Main {
     static boolean noconsole = false;
     static boolean next = false;
     static boolean dev = false;
+    static boolean distribution = false;
 
     public static void main(String[] args) {
         System.out.println();
@@ -53,6 +54,9 @@ public class Main {
 
             if (arg.equalsIgnoreCase("--color")) {
                 next = true;
+            }
+            if (arg.equalsIgnoreCase("distribution")) {
+                distribution = true;
             }
         }
 
@@ -145,6 +149,7 @@ public class Main {
         System.out.println("Installing Linux JDK...");
         File linuxFile = new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz");
         if (!linuxFile.exists()) {
+            System.out.println("Downloading...");
             try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz").openStream());
                  FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz"))) {
                 byte dataBuffer[] = new byte[1024];
@@ -154,6 +159,7 @@ public class Main {
                 }
             } catch (IOException e) {
                 // handle exception
+                System.out.println("Could not download: " + e.getMessage());
             }
         } else {
             System.out.println("Linux file exists. TODO: Check to see if the file is completely downloaded.");
@@ -202,12 +208,15 @@ public class Main {
             if (clean)
                 linuxFile.delete();
             try {
-                copyDirectory(new File(jdkDirectory, "amazon-corretto-17.0.11.9.1-linux-x64"), jdkDirectory);
+                // Instead of using static names retirve the name from the list of directory.
+                String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
+                System.out.println("Detected directory: " + extractedDirectoryName);
+                copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            deleteDirectory(new File(jdkDirectory, "amazon-corretto-17.0.10.9.1-linux-x64"));
+            deleteDirectory(new File(jdkDirectory, "amazon-corretto-17.0.11.9.1-linux-x64"));
             System.out.println("Creating executable files...");
             File startSH = new File(workingDirectory, "start.sh");
             try {
@@ -230,7 +239,9 @@ public class Main {
             if (clean)
                 windowsFile.delete();
             try {
-                copyDirectory(new File(jdkDirectory, "jdk17.0.11_9"), jdkDirectory);
+                String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon") || name.startsWith("jdk"))[0];
+                System.out.println("Detected directory: " + extractedDirectoryName);
+                copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -258,7 +269,9 @@ public class Main {
             if (clean)
                 macFile.delete();
             try {
-                copyDirectory(new File(jdkDirectory, "amazon-corretto-17.jdk"), jdkDirectory);
+                String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
+                System.out.println("Detected directory: " + extractedDirectoryName);
+                copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -294,13 +307,15 @@ public class Main {
             }
 
             System.out.println("Finished extracting default assets.");
-            System.out.println("Creating distributable(s)...");
-            System.out.println("Windows distributable...");
-            createDistributable("windows", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
-            System.out.println("Linux distributable...");
-            createDistributable("linux", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
-            System.out.println("MacOS distributable...");
-            createDistributable("macos", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            if (distribution) {
+                System.out.println("Creating distributable(s)...");
+                System.out.println("Windows distributable...");
+                createDistributable("windows", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+                System.out.println("Linux distributable...");
+                createDistributable("linux", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+                System.out.println("MacOS distributable...");
+                createDistributable("macos", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            }
         }
 
         System.out.println("Done.");

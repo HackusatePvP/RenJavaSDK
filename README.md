@@ -19,4 +19,4 @@ There are a few command lines you can use to further customize your experience.
 
 ## Deployment
 When the jar file is executed it will create three distributables (Windows, MacOS, Linux).
-More instruction coming soon when the RenJava Framework enters public testing.
+More instruction coming soon when the RenJava Framework enters public testing. I made a [video](https://youtu.be/gyZ_r8wtMEI) demonstrating this application.
