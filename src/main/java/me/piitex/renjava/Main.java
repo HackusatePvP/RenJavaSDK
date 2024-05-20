@@ -68,7 +68,8 @@ public class Main {
 
     }
 
-    void init() {String noc = "";
+    void init() {
+        String noc = "";
         if (noconsole) {
             System.out.println("No console argument passed. Using 'javaw' command instead.");
             noc = "w";
@@ -108,7 +109,7 @@ public class Main {
             return;
         }
 
-        File workingDirectory = new File(baseDir,artifact + "-" + version + "/");
+        File workingDirectory = new File(baseDir, artifact + "-" + version + "/");
         workingDirectory.mkdir();
 
         File gameDirectory = new File(workingDirectory, "/game/");
@@ -117,13 +118,16 @@ public class Main {
         File renJavaDirectory = new File(workingDirectory, "/renjava/");
         renJavaDirectory.mkdir();
 
-        File imageDirectory = new File(gameDirectory,"/images/");
+        File imageDirectory = new File(gameDirectory, "/images/");
         imageDirectory.mkdir();
 
         File guiDirectory = new File(imageDirectory, "/gui/");
         guiDirectory.mkdir();
 
-        File audioDirectory = new File(gameDirectory,"/audio/");
+        File cssDirectory = new File(gameDirectory, "/css/");
+        cssDirectory.mkdir();
+
+        File audioDirectory = new File(gameDirectory, "/audio/");
         audioDirectory.mkdir();
 
         File fontDirectory = new File(gameDirectory, "/fonts/");
@@ -282,9 +286,9 @@ public class Main {
         System.out.println("Extracting GUI...");
         System.out.println("Setting color to " + color);
         // Check if the gui directory is empty
+        Collection<String> files = getResources(Pattern.compile(".*"));
         if (guiDirectory.listFiles().length == 0) {
             System.out.println("Directory is empty extracting...");
-            Collection<String> files = getResources(Pattern.compile(".*"));
             for (String s : files) {
                 if (s.startsWith("gui/" + color)) {
                     System.out.println(s);
@@ -305,24 +309,48 @@ public class Main {
                     }
                 }
             }
+        }
 
-            System.out.println("Finished extracting default assets.");
-            if (distribution) {
-                System.out.println("Creating distributable(s)...");
-                System.out.println("Windows distributable...");
-                createDistributable("windows", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
-                System.out.println("Linux distributable...");
-                createDistributable("linux", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
-                System.out.println("MacOS distributable...");
-                createDistributable("macos", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+        System.out.println("Extracting CSS files...");
+        if (cssDirectory.listFiles().length == 0) {
+            for (String s : files) {
+                if (s.startsWith("css/")) {
+                    System.out.println(s);
+                    File file;
+                    if (s.endsWith("/")) {
+                        file = new File(gameDirectory, s + "/");
+                    } else {
+                        file = new File(gameDirectory, s);
+                    }
+                    if (file.isDirectory() || file.getName().endsWith("/") || !file.getName().contains(".")) {
+                        file.mkdir();
+                    } else {
+                        try {
+                            IOUtils.copy(Main.class.getClassLoader().getResourceAsStream(s), new FileOutputStream(file));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
             }
+        }
+
+        System.out.println("Finished extracting default assets.");
+        if (distribution) {
+            System.out.println("Creating distributable(s)...");
+            System.out.println("Windows distributable...");
+            createDistributable("windows", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            System.out.println("Linux distributable...");
+            createDistributable("linux", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            System.out.println("MacOS distributable...");
+            createDistributable("macos", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
         }
 
         System.out.println("Done.");
     }
 
     private void createDistributable(String os, File workingDirectory, File baseDir, File linuxFile, File macFile, File windowsFile, String version, String artifact) {
-        File currentDistribution = new File(baseDir,  os + "-distribution/" + workingDirectory.getName() + "/");
+        File currentDistribution = new File(baseDir, os + "-distribution/" + workingDirectory.getName() + "/");
         currentDistribution.mkdirs();
         try {
             copyDirectory(workingDirectory, currentDistribution);
@@ -435,24 +463,23 @@ public class Main {
      * for all elements of java.class.path get a Collection of resources Pattern
      * pattern = Pattern.compile(".*"); gets all resources
      *
-     * @param pattern
-     *            the pattern to match
+     * @param pattern the pattern to match
      * @return the resources in the order they are found
      */
-    public static Collection<String> getResources(final Pattern pattern){
+    public static Collection<String> getResources(final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         final String classPath = System.getProperty("java.class.path", ".");
         final String[] classPathElements = classPath.split(System.getProperty("path.separator"));
-        for (final String element : classPathElements){
+        for (final String element : classPathElements) {
             retval.addAll(getResources(element, pattern));
         }
         return retval;
     }
 
-    private static Collection<String> getResources(final String element, final Pattern pattern){
+    private static Collection<String> getResources(final String element, final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         final File file = new File(element);
-        if (file.isDirectory()){
+        if (file.isDirectory()) {
             retval.addAll(getResourcesFromDirectory(file, pattern));
         } else {
             retval.addAll(getResourcesFromJarFile(file, pattern));
@@ -460,53 +487,52 @@ public class Main {
         return retval;
     }
 
-    private static Collection<String> getResourcesFromJarFile(final File file, final Pattern pattern){
+    private static Collection<String> getResourcesFromJarFile(final File file, final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         ZipFile zf;
-        try{
+        try {
             zf = new ZipFile(file);
-        } catch(final ZipException e){
+        } catch (final ZipException e) {
             throw new Error(e);
-        } catch(final IOException e){
+        } catch (final IOException e) {
             throw new Error(e);
         }
         final Enumeration e = zf.entries();
-        while(e.hasMoreElements()){
+        while (e.hasMoreElements()) {
             final ZipEntry ze = (ZipEntry) e.nextElement();
             final String fileName = ze.getName();
             final boolean accept = pattern.matcher(fileName).matches();
-            if(accept){
+            if (accept) {
                 retval.add(fileName);
             }
         }
-        try{
+        try {
             zf.close();
-        } catch(final IOException e1){
+        } catch (final IOException e1) {
             throw new Error(e1);
         }
         return retval;
     }
 
-    private static Collection<String> getResourcesFromDirectory(final File directory, final Pattern pattern){
+    private static Collection<String> getResourcesFromDirectory(final File directory, final Pattern pattern) {
         final ArrayList<String> retval = new ArrayList<String>();
         final File[] fileList = directory.listFiles();
         for (final File file : fileList) {
             if (file.isDirectory()) {
                 retval.addAll(getResourcesFromDirectory(file, pattern));
                 file.mkdir();
-            } else{
-                try{
+            } else {
+                try {
                     final String fileName = file.getCanonicalPath();
                     final boolean accept = pattern.matcher(fileName).matches();
                     if (accept) {
                         retval.add(fileName);
                     }
-                } catch(final IOException e){
+                } catch (final IOException e) {
                     throw new Error(e);
                 }
             }
         }
         return retval;
     }
-
 }
