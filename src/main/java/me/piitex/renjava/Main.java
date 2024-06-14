@@ -55,7 +55,7 @@ public class Main {
             if (arg.equalsIgnoreCase("--color")) {
                 next = true;
             }
-            if (arg.equalsIgnoreCase("distribution")) {
+            if (arg.equalsIgnoreCase("--distribution") || args.equals("--dist")) {
                 distribution = true;
             }
         }
@@ -155,7 +155,7 @@ public class Main {
         if (!linuxFile.exists()) {
             System.out.println("Downloading...");
             try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz").openStream());
-                 FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz"))) {
+                FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz"))) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
