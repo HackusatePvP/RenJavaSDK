@@ -55,7 +55,7 @@ public class Main {
             if (arg.equalsIgnoreCase("--color")) {
                 next = true;
             }
-            if (arg.equalsIgnoreCase("--distribution") || args.equals("--dist")) {
+            if (arg.equalsIgnoreCase("--distribution") || arg.equalsIgnoreCase("--dist")) {
                 distribution = true;
             }
         }
