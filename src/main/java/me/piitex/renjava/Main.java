@@ -154,7 +154,7 @@ public class Main {
         File linuxFile = new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz");
         if (!linuxFile.exists()) {
             System.out.println("Downloading...");
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz").openStream());
+            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-linux-jdk.tar.gz").openStream());
                 FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz"))) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -172,7 +172,7 @@ public class Main {
         System.out.println("Installing Windows JDK...");
         File windowsFile = new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip");
         if (!windowsFile.exists()) {
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-17-x64-windows-jdk.zip").openStream());
+            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.zip").openStream());
                  FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip"))) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -187,7 +187,7 @@ public class Main {
         System.out.println("Installing MacOS JDK...");
         File macFile = new File(workingDirectory, "amazon-corretto-17-x64-macos-jdk.tar.gz");
         if (!macFile.exists()) {
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-17-x64-macos-jdk.tar.gz").openStream());
+            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-macos-jdk.tar.gz").openStream());
                  FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-macos-jdk.tar.gz"))) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -403,7 +403,6 @@ public class Main {
         }
 
         System.out.println("Cleaning up...");
-        //deleteDirectory(currentDistribution);
         deleteDirectory(new File(os + "-distribution/"));
     }
 
