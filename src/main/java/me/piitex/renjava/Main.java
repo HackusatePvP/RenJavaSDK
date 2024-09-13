@@ -64,10 +64,6 @@ public class Main {
 
     }
 
-    public Main() {
-
-    }
-
     void init() {
         String noc = "";
         if (noconsole) {
@@ -216,11 +212,11 @@ public class Main {
                 String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
                 System.out.println("Detected directory: " + extractedDirectoryName);
                 copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
+                deleteDirectory(new File(jdkDirectory, extractedDirectoryName));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            deleteDirectory(new File(jdkDirectory, "amazon-corretto-17.0.11.9.1-linux-x64"));
             System.out.println("Creating executable files...");
             File startSH = new File(workingDirectory, "start.sh");
             try {
@@ -246,11 +242,11 @@ public class Main {
                 String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon") || name.startsWith("jdk"))[0];
                 System.out.println("Detected directory: " + extractedDirectoryName);
                 copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
+                deleteDirectory(new File(jdkDirectory, extractedDirectoryName));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            deleteDirectory(new File(jdkDirectory, "jdk17.0.11_9"));
             System.out.println("Creating executable files...");
             File startBat = new File(workingDirectory, "start.bat");
             try {
@@ -276,11 +272,10 @@ public class Main {
                 String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
                 System.out.println("Detected directory: " + extractedDirectoryName);
                 copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
+                deleteDirectory(new File(jdkDirectory, extractedDirectoryName));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
-            deleteDirectory(new File(jdkDirectory, "amazon-corretto-17.jdk"));
         }
 
         System.out.println("Extracting GUI...");
@@ -359,7 +354,7 @@ public class Main {
         }
 
         if (os.equalsIgnoreCase("windows") || os.equalsIgnoreCase("macos")) {
-            File linuxJDK = new File(currentDistribution, "/jdk/linux/");
+            File linuxJDK = new File(currentDistribution, "/jdk/linux");
             deleteDirectory(linuxJDK);
         }
 
