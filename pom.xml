@@ -6,7 +6,7 @@
 
     <groupId>me.piitex.renjava</groupId>
     <artifactId>RSDK</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2.2-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
