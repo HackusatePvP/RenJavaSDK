@@ -180,21 +180,6 @@ public class Main {
             }
         }
 
-        System.out.println("Installing MacOS JDK...");
-        File macFile = new File(workingDirectory, "amazon-corretto-17-x64-macos-jdk.tar.gz");
-        if (!macFile.exists()) {
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-macos-jdk.tar.gz").openStream());
-                 FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-macos-jdk.tar.gz"))) {
-                byte dataBuffer[] = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                // handle exception
-            }
-        }
-
         if (!dev) {
             System.out.println("Unzipping Linux jdk...");
             File jdkDirectory = new File(workingDirectory, "jdk/linux/");
@@ -256,26 +241,6 @@ public class Main {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
-            System.out.println("Unzipping MacOS JDK...");
-            jdkDirectory = new File(workingDirectory, "jdk/macos/");
-            jdkDirectory.mkdir();
-            ua = new TarGZipUnArchiver();
-            ua.setSourceFile(macFile);
-            ua.setDestDirectory(jdkDirectory);
-            ua.extract();
-            System.out.println("Finished unzip.");
-            System.out.println("Cleaning up...");
-            if (clean)
-                macFile.delete();
-            try {
-                String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
-                System.out.println("Detected directory: " + extractedDirectoryName);
-                copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
-                deleteDirectory(new File(jdkDirectory, extractedDirectoryName));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         System.out.println("Extracting GUI...");
@@ -334,17 +299,17 @@ public class Main {
         if (distribution) {
             System.out.println("Creating distributable(s)...");
             System.out.println("Windows distributable...");
-            createDistributable("windows", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            createDistributable("windows", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
             System.out.println("Linux distributable...");
-            createDistributable("linux", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            createDistributable("linux", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
             System.out.println("MacOS distributable...");
-            createDistributable("macos", workingDirectory, baseDir, linuxFile, macFile, windowsFile, version, artifact);
+            createDistributable("macos", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
         }
 
         System.out.println("Done.");
     }
 
-    private void createDistributable(String os, File workingDirectory, File baseDir, File linuxFile, File macFile, File windowsFile, String version, String artifact) {
+    private void createDistributable(String os, File workingDirectory, File baseDir, File linuxFile, File windowsFile, String version, String artifact) {
         File currentDistribution = new File(baseDir, os + "-distribution/" + workingDirectory.getName() + "/");
         currentDistribution.mkdirs();
         try {
@@ -377,9 +342,6 @@ public class Main {
             File macOS = new File(currentDistribution, "/jdk/macos/");
             deleteDirectory(macOS);
         }
-
-        File macZip = new File(currentDistribution, macFile.getName());
-        macZip.delete();
 
         if (os.equalsIgnoreCase("windows")) {
             File shFile = new File(currentDistribution, "start.sh");
