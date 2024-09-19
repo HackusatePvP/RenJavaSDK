@@ -10,7 +10,7 @@ Hero-Adventure
   pom.xml
   RenJavaSDK-1.0-SNAPSHOT.jar
 ```
-Then execute via shell or terminal command. `java -jar RenJavaSDK-1.0-SNAPSHOT.jar -- color blue`.
+Then execute via shell or terminal command. `java -jar RenJavaSDK-1.0-SNAPSHOT.jar --color blue`.
 
 There are a few command lines you can use to further customize your experience.
 * --noclean - This will not remove the downloaded JDK once it's done downloading.
