@@ -9,10 +9,7 @@ import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -114,6 +111,9 @@ public class Main {
         File renJavaDirectory = new File(workingDirectory, "/renjava/");
         renJavaDirectory.mkdir();
 
+        File sdkDirectory = new File(workingDirectory, "jdk/");
+        sdkDirectory.mkdir();
+
         File imageDirectory = new File(gameDirectory, "/images/");
         imageDirectory.mkdir();
 
@@ -147,11 +147,13 @@ public class Main {
         }
 
         System.out.println("Installing Linux JDK...");
-        File linuxFile = new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz");
+        File jdkDirectory = new File(workingDirectory, "jdk/linux/");
+        jdkDirectory.mkdir();
+        File linuxFile = new File(jdkDirectory, "amazon-corretto-21-x64-linux-jdk.deb");
         if (!linuxFile.exists()) {
             System.out.println("Downloading...");
-            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-linux-jdk.tar.gz").openStream());
-                FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-linux-jdk.tar.gz"))) {
+            try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-linux-jdk.deb").openStream());
+                FileOutputStream fileOutputStream = new FileOutputStream(linuxFile)) {
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
@@ -181,37 +183,6 @@ public class Main {
         }
 
         if (!dev) {
-            System.out.println("Unzipping Linux jdk...");
-            File jdkDirectory = new File(workingDirectory, "jdk/linux/");
-            jdkDirectory.mkdirs();
-            TarGZipUnArchiver ua = new TarGZipUnArchiver();
-            ua.setSourceFile(linuxFile);
-            ua.setDestDirectory(jdkDirectory);
-            ua.extract();
-            System.out.println("Finished unzip.");
-            System.out.println("Cleaning up...");
-            if (clean)
-                linuxFile.delete();
-            try {
-                // Instead of using static names retirve the name from the list of directory.
-                String extractedDirectoryName = jdkDirectory.list((dir, name) -> name.startsWith("amazon"))[0];
-                System.out.println("Detected directory: " + extractedDirectoryName);
-                copyDirectory(new File(jdkDirectory, extractedDirectoryName), jdkDirectory);
-                deleteDirectory(new File(jdkDirectory, extractedDirectoryName));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            System.out.println("Creating executable files...");
-            File startSH = new File(workingDirectory, "start.sh");
-            try {
-                FileWriter writer = new FileWriter(startSH, false);
-                writer.write("\"jdk\\linux\\bin\\java\"" + noc + " -jar " + jarFile.getName());
-                writer.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
             System.out.println("Unzipping Windows JDK...");
             jdkDirectory = new File(workingDirectory, "jdk/windows/");
             jdkDirectory.mkdir();
@@ -237,6 +208,46 @@ public class Main {
             try {
                 FileWriter writer = new FileWriter(startBat, false);
                 writer.write("\"jdk\\windows\\bin\\java" + noc + ".exe\" -jar " + jarFile.getName());
+                writer.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            File installLinux = new File(sdkDirectory, "install_linux_64.sh");
+            try {
+                FileWriter writer = new FileWriter(installLinux, false);
+                writer.write("# To install JDK 21 on Debian distro x64\n");
+                writer.write("# Get repo and key\n");
+                writer.write("wget -O - https://apt.corretto.aws/corretto.key | sudo gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg && \\\n");
+                writer.write("echo \"deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main\" | sudo tee /etc/apt/sources.list.d/corretto.list\n");
+                writer.write("# Install Amazon JDK 21\n");
+                writer.write("apt-get update; apt-get install -y java-21-amazon-corretto-jdk\n");
+                writer.write("# Verify installation\n");
+                writer.write("java --version\n");
+                writer.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            File installLinuxLocal = new File(sdkDirectory, "install_linux_local_64.sh");
+            try {
+                FileWriter writer = new FileWriter(installLinuxLocal, false);
+                writer.write("sudo apt install /jdk/linux/amazon-corretto-21-x64-linux-jdk.deb");
+                writer.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            File startLinux = new File(workingDirectory, "start_linux.sh");
+            try {
+                FileWriter writer = new FileWriter(startLinux, false);
+                writer.write("if which java > /dev/null 2>&1; then\n");
+                writer.write("  echo \"Java Installed.\"\n");
+                writer.write("else\n");
+                writer.write("  echo \"Not Installed.\"\n");
+                writer.write("  sudo apt install ./jdk/linux/amazon-corretto-21-x64-linux-jdk.deb");
+                writer.write("fi\n");
+                writer.write("  java -jar " + jarFile.getName());
                 writer.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -302,8 +313,6 @@ public class Main {
             createDistributable("windows", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
             System.out.println("Linux distributable...");
             createDistributable("linux", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
-            System.out.println("MacOS distributable...");
-            createDistributable("macos", workingDirectory, baseDir, linuxFile, windowsFile, version, artifact);
         }
 
         System.out.println("Done.");
@@ -327,8 +336,15 @@ public class Main {
         File linuxZip = new File(currentDistribution, linuxFile.getName());
         linuxZip.delete();
 
+        // Delete logs folder
+        deleteDirectory(new File(currentDistribution, "logs/"));
+
 
         if (os.equalsIgnoreCase("linux") || os.equalsIgnoreCase("macos")) {
+            File executable = Arrays.stream(currentDistribution.listFiles()).filter(file -> file.getName().endsWith(".exe")).findAny().orElse(null);
+            if (executable != null) {
+                executable.delete();
+            }
             File windowsJDK = new File(currentDistribution, "/jdk/windows/");
             deleteDirectory(windowsJDK);
             File batFile = new File(currentDistribution, "start.bat");
@@ -344,8 +360,10 @@ public class Main {
         }
 
         if (os.equalsIgnoreCase("windows")) {
-            File shFile = new File(currentDistribution, "start.sh");
-            shFile.delete();
+            File installFile = new File(currentDistribution, "install_linux_local_64.sh");
+            installFile.delete();
+            File localInstallFile = new File(currentDistribution, "install_linux_64.sh");
+            localInstallFile.delete();
         }
 
         ZipArchiver archiver = new ZipArchiver();
