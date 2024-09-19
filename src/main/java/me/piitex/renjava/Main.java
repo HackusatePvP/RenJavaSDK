@@ -245,7 +245,7 @@ public class Main {
                 writer.write("  echo \"Java Installed.\"\n");
                 writer.write("else\n");
                 writer.write("  echo \"Not Installed.\"\n");
-                writer.write("  sudo apt install ./jdk/linux/amazon-corretto-21-x64-linux-jdk.deb");
+                writer.write("  sudo apt install ./jdk/linux/amazon-corretto-21-x64-linux-jdk.deb\n");
                 writer.write("fi\n");
                 writer.write("  java -jar " + jarFile.getName());
                 writer.close();
