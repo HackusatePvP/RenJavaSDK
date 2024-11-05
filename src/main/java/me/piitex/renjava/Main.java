@@ -111,7 +111,7 @@ public class Main {
         File renJavaDirectory = new File(workingDirectory, "/renjava/");
         renJavaDirectory.mkdir();
 
-        File sdkDirectory = new File(workingDirectory, "jdk/");
+        File sdkDirectory = new File(workingDirectory, "/jdk/");
         sdkDirectory.mkdir();
 
         File imageDirectory = new File(gameDirectory, "/images/");
@@ -169,7 +169,7 @@ public class Main {
 
         System.out.println("Installing Windows JDK...");
         File windowsFile = new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip");
-        if (!windowsFile.exists()) {
+        if (!windowsFile.exists() || new File(windowsFile, "/jdk/windows/").listFiles().length > 0) {
             try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.zip").openStream());
                  FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip"))) {
                 byte dataBuffer[] = new byte[1024];
@@ -340,7 +340,7 @@ public class Main {
         deleteDirectory(new File(currentDistribution, "logs/"));
 
 
-        if (os.equalsIgnoreCase("linux") || os.equalsIgnoreCase("macos")) {
+        if (os.equalsIgnoreCase("linux")) {
             File executable = Arrays.stream(currentDistribution.listFiles()).filter(file -> file.getName().endsWith(".exe")).findAny().orElse(null);
             if (executable != null) {
                 executable.delete();
@@ -351,19 +351,13 @@ public class Main {
             batFile.delete();
         }
 
-        File windowsZip = new File(currentDistribution, windowsFile.getName());
-        windowsZip.delete();
-
-        if (os.equalsIgnoreCase("windows") || os.equalsIgnoreCase("linux")) {
-            File macOS = new File(currentDistribution, "/jdk/macos/");
-            deleteDirectory(macOS);
-        }
-
         if (os.equalsIgnoreCase("windows")) {
-            File installFile = new File(currentDistribution, "install_linux_local_64.sh");
+            File installFile = new File(currentDistribution, "/jdk/install_linux_local_64.sh");
             installFile.delete();
-            File localInstallFile = new File(currentDistribution, "install_linux_64.sh");
+            File localInstallFile = new File(currentDistribution, "/jdk/install_linux_64.sh");
             localInstallFile.delete();
+            File startLinux = new File(currentDistribution, "start_linux.sh");
+            startLinux.delete();
         }
 
         ZipArchiver archiver = new ZipArchiver();
