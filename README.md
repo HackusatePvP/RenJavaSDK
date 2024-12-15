@@ -22,7 +22,12 @@ The following is the current supported colors.
 * aqua
 * blue
 * light_blue
+* cyan
+* green
 * orange
+* pink
+* purple
+* red
 
 ## Managing Assets
 Managing and organizing assets is very important for RenJava. To keep things clean for debugging purposes all assets must be placed in the appropriate folders.
