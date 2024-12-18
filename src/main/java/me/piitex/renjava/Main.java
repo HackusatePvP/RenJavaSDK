@@ -172,7 +172,8 @@ public class Main {
 
         System.out.println("Installing Windows JDK...");
         File windowsFile = new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip");
-        if (!windowsFile.exists() || new File(windowsFile, "/jdk/windows/").listFiles().length > 0) {
+        windowsFile.delete();
+        if (!windowsFile.exists() || new File(windowsFile, "jdk/windows/").listFiles() != null && new File(windowsFile, "/jdk/windows/").listFiles().length > 0) {
             try (BufferedInputStream in = new BufferedInputStream(new URL("https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.zip").openStream());
                  FileOutputStream fileOutputStream = new FileOutputStream(new File(workingDirectory, "amazon-corretto-17-x64-windows-jdk.zip"))) {
                 byte dataBuffer[] = new byte[1024];
