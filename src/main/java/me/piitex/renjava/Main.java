@@ -1,7 +1,6 @@
 package me.piitex.renjava;
 
 import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
@@ -27,7 +26,6 @@ public class Main {
         System.out.println();
         System.out.println();
         System.out.println("The project uses the Amazon Corretto Java Distribution. By using this application you herby agree to all terms and conditions of using and distributing this software.");
-        System.out.println();
         System.out.println();
         System.out.println("RenJava and all utilities and tools are maintained by piitex. Thank you for using the project.");
         System.out.println();
@@ -62,10 +60,12 @@ public class Main {
     }
 
     void init() {
-        String noc = "";
+        String noc = ".exe";
+        String command = "\"jdk\\windows\\bin\\java\"";
         if (noconsole) {
+            command = "start jdk\\windows\\bin\\java";
             System.out.println("No console argument passed. Using 'javaw' command instead.");
-            noc = "w";
+            noc = "w.exe";
         }
 
         System.out.println("Checking project environment...");
@@ -131,6 +131,9 @@ public class Main {
 
         File savesDirectory = new File(gameDirectory, "/saves/");
         savesDirectory.mkdir();
+
+        File mediaDirectory = new File(gameDirectory, "/media/");
+        mediaDirectory.mkdir();
 
         System.out.println("Created game directory. Please place assets into the appropriate folders.");
 
@@ -207,7 +210,16 @@ public class Main {
             File startBat = new File(workingDirectory, "start.bat");
             try {
                 FileWriter writer = new FileWriter(startBat, false);
-                writer.write("\"jdk\\windows\\bin\\java" + noc + ".exe\" -jar " + jarFile.getName());
+                writer.write(command + noc + " -jar " + jarFile.getName());
+                writer.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            File debugBat = new File(workingDirectory, "debug.bat");
+            try {
+                FileWriter writer = new FileWriter(debugBat, false);
+                writer.write("\"jdk\\windows\\bin\\java.exe\" -jar HeroAdventure-1.0.1-SNAPSHOT.jar");
                 writer.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -252,6 +264,15 @@ public class Main {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        File debugSH = new File(workingDirectory, "debug.sh");
+        try {
+            FileWriter writer = new FileWriter(debugSH, false);
+            writer.write("java -jar HeroAdventure-1.0.1-SNAPSHOT.jar");
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         System.out.println("Extracting GUI...");
@@ -338,6 +359,12 @@ public class Main {
 
         // Delete logs folder
         deleteDirectory(new File(currentDistribution, "logs/"));
+
+        // Always delete debuggers
+        File debugBat = new File(currentDistribution, "debug.bat");
+        debugBat.delete();
+        File debugSH = new File(currentDistribution, "debug.sh");
+        debugSH.delete();
 
 
         if (os.equalsIgnoreCase("linux")) {
