@@ -220,7 +220,7 @@ public class Main {
             File debugBat = new File(workingDirectory, "debug.bat");
             try {
                 FileWriter writer = new FileWriter(debugBat, false);
-                writer.write("\"jdk\\windows\\bin\\java.exe\" -jar HeroAdventure-1.0.1-SNAPSHOT.jar");
+                writer.write("\"jdk\\windows\\bin\\java.exe\" -jar " + jarFile.getName());
                 writer.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -270,7 +270,7 @@ public class Main {
         File debugSH = new File(workingDirectory, "debug.sh");
         try {
             FileWriter writer = new FileWriter(debugSH, false);
-            writer.write("java -jar HeroAdventure-1.0.1-SNAPSHOT.jar");
+            writer.write("java -jar " + jarFile.getName());
             writer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
